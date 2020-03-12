@@ -6,10 +6,10 @@ from common.model import TemporalModel
 from common.utils import deterministic_random
 from pose import *
 
-custom_dataset = '/home/filip/Documents/VideoPose3D-master/data/data_2d_custom_baseball_3.npz'
-output_path = "/home/filip/Documents/VideoPose3D-master/hello.mp4"
-chk_filename = '/home/filip/Documents/VideoPose3D-master/checkpoint/pretrained_h36m_detectron_coco.bin'
-input_video_path = '/home/filip/Documents/VideoPose3D-master/inputs/FirstTry.mp4'
+custom_dataset = './data/data_2d_custom_baseball_3.npz'
+output_path = None
+chk_filename = './checkpoint/Model_3D.bin'
+input_video_path = './inputs/baseball_1.mp4'
 export_path = None
 
 dataset = CustomDataset(custom_dataset)

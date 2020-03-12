@@ -100,10 +100,8 @@ class Predictor:
         pose.plot()
 
 
-#poses=npy_to_poses("/home/filip/Documents/VideoPose3D-master/predictions/baseball_1.npy")
+#poses=npy_to_poses("./predictions/baseball_1.npy")
 
-pred = Predictor('/home/filip/Documents/VideoPose3D-master/data/data_2d_custom_baseball_george_2.npz',
-                 '/home/filip/Documents/VideoPose3D-master/checkpoint/pretrained_h36m_detectron_coco.bin',
-                 export_path="/home/filip/Documents/VideoPose3D-master/predictions/baseball_george_2")
-pred.export_prediction()
+pred = Predictor('.data/data_2d_custom_baseball_george_2.npz',
+                 './checkpoint/Model_3D.bin')
 pred.plot_pose()

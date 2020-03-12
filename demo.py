@@ -8,7 +8,7 @@ from common.visualization import render_animation
 
 custom_dataset = '/home/filip/Documents/VideoPose3D-master/data/data_2d_custom_baseball_george_2.npz'
 output_path = "/home/filip/Documents/VideoPose3D-master/baseball_george_1.mp4"
-chk_filename = '/home/filip/Documents/VideoPose3D-master/checkpoint/pretrained_h36m_detectron_coco.bin'
+chk_filename = '/home/filip/Documents/VideoPose3D-master/checkpoint/Model_3D.bin'
 input_video_path = '/home/filip/Documents/VideoPose3D-master/inputs/baseball_george_2.mp4'
 export_path = None
 

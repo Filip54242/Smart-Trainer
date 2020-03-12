@@ -87,7 +87,8 @@ class Pose:
             distance += self.joints[index].euclidian_distance(other.joints[index])
         return distance
 
-    def compute_corrections(self, diff, treshold=50):
+    def compute_corrections(self, other, treshold=50):
+        diff = self - other
         for index in range(1, self.num_joints):
             indexes = [None, None, None]
             for index_2 in range(len(diff[index])):
