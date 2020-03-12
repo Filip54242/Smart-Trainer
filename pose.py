@@ -71,8 +71,11 @@ class Pose:
                 15: [16],
                 16: None}
 
-    def __init__(self, joints=None):
-        self.joints = joints
+    def __init__(self, joints):
+        self.joints = []
+        for index in range(len(joints)):
+            x, y, z = joints[index]
+            self.joints.append(Joint(x, y, z, index))
         self.num_joints = len(self.joints)
 
     def __sub__(self, other):

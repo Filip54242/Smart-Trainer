@@ -58,4 +58,4 @@ def npy_to_poses(path):
     poses = np.load(path)
     for pose in poses.tolist():
         pose_list.append(Pose(pose))
-    return poses
+    return pose_list

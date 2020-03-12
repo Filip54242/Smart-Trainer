@@ -21,7 +21,7 @@ class Comparator:
             min_index = 0
             for index_2 in range(len(self.good_poses)):
                 distance = self.bad_poses[index_1].pose_distance(self.good_poses[index_2])
-                min_value, min_index = distance, index_2 if distance < min_value else min_value, min_index
+                min_value, min_index = (distance, index_2) if distance < min_value else (min_value, min_index)
             if min_value > treshold:
                 continue
             self.bad_poses[index_1].compute_corrections(self.good_poses[min_index])
