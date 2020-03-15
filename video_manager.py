@@ -1,4 +1,5 @@
 import cv2
+import matplotlib.pyplot as plt
 
 
 class VideoManager:
@@ -24,9 +25,11 @@ class VideoManager:
             output.write(frame)
         output.release()
 
-    def show_frame(self, index=0, title=None):
+    def prepare_frame(self, index=0, title=None):
         frame_title = 'Frame ' + str(index) if title is None else title
-        cv2.namedWindow(frame_title)
-        cv2.imshow(frame_title, self.frames[index])
-        cv2.waitKey(0)
+
+        frame = cv2.cvtColor(self.frames[index], cv2.COLOR_BGR2RGB)
+
+        fig = plt.imshow(frame)
+
 

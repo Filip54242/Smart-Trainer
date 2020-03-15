@@ -1,6 +1,6 @@
 from common.utils import npy_to_poses
 from video_manager import VideoManager
-
+import matplotlib.pyplot as plt
 
 class Comparator:
     def __init__(self, good_pose, bad_pose, good_pose_video=None, bad_pose_video=None):
@@ -15,9 +15,9 @@ class Comparator:
             self.bad_poses_video = VideoManager()
             self.bad_poses_video.get_video(bad_pose_video)
 
-    def compare_poses(self, treshold=1.5):
+    def compare_poses(self, treshold=10):
         for index_1 in range(len(self.bad_poses)):
-            min_value = 10
+            min_value = treshold + 1
             min_index = 0
             for index_2 in range(len(self.good_poses)):
                 distance = self.bad_poses[index_1].pose_distance(self.good_poses[index_2])
@@ -26,6 +26,7 @@ class Comparator:
                 continue
             self.bad_poses[index_1].compute_corrections(self.good_poses[min_index])
             if self.good_poses_video is not None:
-                self.good_poses_video.show_frame(min_index)
+                self.good_poses_video.prepare_frame(min_index)
             if self.bad_poses_video is not None:
-                self.bad_poses_video.show_frame(index_1)
+                self.bad_poses_video.prepare_frame(index_1)
+            plt.show()
