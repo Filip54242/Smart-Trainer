@@ -24,12 +24,3 @@ class VideoManager:
         for frame in self.frames:
             output.write(frame)
         output.release()
-
-    def prepare_frame(self, index=0, title=None):
-        frame_title = 'Frame ' + str(index) if title is None else title
-
-        frame = cv2.cvtColor(self.frames[index], cv2.COLOR_BGR2RGB)
-
-        fig = plt.imshow(frame)
-
-
