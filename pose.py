@@ -52,6 +52,9 @@ class Joint:
 
 
 class Pose:
+    SPINE_GROUP = [7, 8, 0]
+    HEAD_GROUP = [9, 10]
+    LIMB_GROUP = [1, 2, 3, 4, 5, 6, 11, 12, 13, 14, 15, 16]
     CORRECTIONS = [["UP", "DOWN"], ["FORWARD", "BACKWARD"], ["RIGHT", "LEFT"]]
     SKELETON = {0: [1, 4, 7],
                 1: [2],
@@ -78,21 +81,20 @@ class Pose:
             self.joints.append(Joint(x, y, z, index))
         self.num_joints = len(self.joints)
 
+    def __len__(self):
+        return len(self.joints)
+
     def __sub__(self, other):
         differences = []
         for index in range(len(self.joints)):
             differences.append(self.joints[index] - other.joints[index])
         return differences
 
-    def pose_distance(self, other):
-        distance = 0
-        for index in range(1, self.num_joints):
-            distance += self.joints[index].euclidian_distance(other.joints[index])
-        return distance
+    def __getitem__(self, item):
+        return self.joints[item]
 
-    def compute_corrections(self, other, treshold=50):
-        diff = self - other
-        for index in range(1, self.num_joints):
+    def limbs_group_corrections(self, diff, treshold):
+        for index in self.LIMB_GROUP:
             indexes = [None, None, None]
             for index_2 in range(len(diff[index])):
                 if int(diff[index][index_2] * treshold) > 0:
@@ -105,6 +107,32 @@ class Pose:
             directions += self.CORRECTIONS[2][indexes[2]] + " " if indexes[2] is not None else ''
             if directions != '':
                 print("MOVE YOUR  " + str(self.joints[index]) + " " + directions + '\n')
+
+    def group_corrections(self, diff, group, treshold):
+        if group is not self.SPINE_GROUP or group is not self.HEAD_GROUP:
+            return
+        texts = set()
+        for index in group:
+            indexes = [None, None, None]
+            for index_2 in range(len(diff[index])):
+                if int(diff[index][index_2] * treshold) > 0:
+                    indexes[index_2] = 0
+                if int(diff[index][index_2] * treshold) < 0:
+                    indexes[index_2] = 1
+            texts.add(self.CORRECTIONS[0][indexes[0]] + " " if indexes[0] is not None else '')
+            texts.add(self.CORRECTIONS[1][indexes[1]] + " " if indexes[1] is not None else '')
+            texts.add(self.CORRECTIONS[2][indexes[2]] + " " if indexes[2] is not None else '')
+        directions = ''
+        for text in texts:
+            directions += text
+        if directions != '':
+            print("MOVE YOUR BACK " + directions + '\n')
+
+    def compute_corrections(self, other, treshold=50):
+        diff = self - other
+        self.limbs_group_corrections(diff, treshold)
+        self.group_corrections(diff, self.HEAD_GROUP, treshold)
+        self.group_corrections(diff, self.SPINE_GROUP, treshold)
 
     def prepare_plot(self, axis=None):
         if axis is None:

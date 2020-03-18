@@ -17,9 +17,28 @@ def plot_frames(first_frame, second_frame):
 
 
 class Comparator:
-    def __init__(self, good_pose, bad_pose, good_pose_video=None, bad_pose_video=None):
+    DEFAULT_WEIGHTS = {"BOTTOM SPINE": 0,
+                       "RIGHT HIP": 1,
+                       "RIGHT KNEE": 1,
+                       "RIGHT ANKLE": 1,
+                       "LEFT HIP": 1,
+                       "LEFT KNEE": 1,
+                       "LEFT ANKLE": 1,
+                       "MIDDLE SPINE": 0,
+                       "TOP SPINE": 0,
+                       "MIDDLE HEAD": 0,
+                       "TOP HEAD": 0,
+                       "LEFT SHOULDER": 1,
+                       "LEFT ELBOW": 1,
+                       "LEFT HAND": 1,
+                       "RIGHT SHOULDER": 1,
+                       "RIGHT ELBOW": 1,
+                       "RIGHT HAND": 1}
+
+    def __init__(self, good_pose, bad_pose, good_pose_video=None, bad_pose_video=None, weights=None):
         self.good_poses = npy_to_poses(good_pose)
         self.bad_poses = npy_to_poses(bad_pose)
+        self.weights = list(self.DEFAULT_WEIGHTS.values()) if weights is None else weights
         self.good_poses_video = None
         self.bad_poses_video = None
         if good_pose_video is not None:
@@ -29,12 +48,20 @@ class Comparator:
             self.bad_poses_video = VideoManager()
             self.bad_poses_video.get_video(bad_pose_video)
 
+    def compute_pose_distance(self, pose_1, pose_2):
+        if len(pose_1) != len(pose_2):
+            return float("inf")
+        distance = 0
+        for index in range(len(pose_1)):
+            distance += pose_1[index].euclidian_distance(pose_2[index]) * self.weights[index]
+        return distance
+
     def compare_poses(self, treshold=3):
         for index_1 in range(len(self.bad_poses)):
             min_value = treshold + 1
             min_index = 0
             for index_2 in range(len(self.good_poses)):
-                distance = self.bad_poses[index_1].pose_distance(self.good_poses[index_2])
+                distance = self.compute_pose_distance(self.bad_poses[index_1], self.good_poses[index_2])
                 min_value, min_index = (distance, index_2) if distance < min_value else (min_value, min_index)
             if min_value > treshold:
                 continue
