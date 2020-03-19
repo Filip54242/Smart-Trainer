@@ -104,7 +104,7 @@ class Predictor:
 
 pred = Predictor('./data/data_2d_custom_baseball_me.npz',
                  './checkpoint/Model_3D.bin',
-                 export_path="/home/filip/Documents/Repos/Smart-Trainer/predictions/baseball.me")
-pred.export_prediction()-
+                 export_path="/home/filip/Documents/Repos/Smart-Trainer/predictions/baseball_me")
+pred.export_prediction()
 
 pred.plot_pose()
