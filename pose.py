@@ -5,11 +5,7 @@ from mpl_toolkits.mplot3d import Axes3D
 
 
 def make_pose(keypoints):
-    joints = []
-    for index in range(len(keypoints)):
-        x, y, z = keypoints[index]
-        joints.append(Joint(x, y, z, index))
-    return Pose(joints)
+    return Pose(keypoints)
 
 
 class Joint:

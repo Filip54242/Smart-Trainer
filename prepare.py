@@ -163,8 +163,8 @@ def predict(model_config_path, model_weights_path, video_path, output_path):
 if __name__ == '__main__':
     # Init pose predictor:
 
-    model_config_path = './keypoint_rcnn_R_50_FPN_1x.yaml'
+    model_config_path = '/home/filip/Documents/detectron2/configs/COCO-Keypoints/keypoint_rcnn_R_50_FPN_1x.yaml'
     model_weights_path = './checkpoint/model_2D.pkl'
-    video_path = './inputs/baseball_george_1.mp4'
-    output_path = './data/data_2d_custom_baseball_george_aux'
+    video_path = './inputs/me.mp4'
+    output_path = './data/data_2d_custom_baseball_me'
     predict(model_config_path, model_weights_path, video_path, output_path)
