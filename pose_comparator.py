@@ -17,17 +17,17 @@ def plot_frames(first_frame, second_frame):
 
 
 class Comparator:
-    DEFAULT_WEIGHTS = {"BOTTOM SPINE": 0,
+    DEFAULT_WEIGHTS = {"BOTTOM SPINE": 0.1,
                        "RIGHT HIP": 1,
                        "RIGHT KNEE": 1,
                        "RIGHT ANKLE": 1,
                        "LEFT HIP": 1,
                        "LEFT KNEE": 1,
                        "LEFT ANKLE": 1,
-                       "MIDDLE SPINE": 0,
-                       "TOP SPINE": 0,
-                       "MIDDLE HEAD": 0,
-                       "TOP HEAD": 0,
+                       "MIDDLE SPINE": 0.1,
+                       "TOP SPINE": 0.1,
+                       "MIDDLE HEAD": 0.1,
+                       "TOP HEAD": 0.1,
                        "LEFT SHOULDER": 1,
                        "LEFT ELBOW": 1,
                        "LEFT HAND": 1,
@@ -56,15 +56,18 @@ class Comparator:
             distance += pose_1[index].euclidian_distance(pose_2[index]) * self.weights[index]
         return distance
 
-    def compare_poses(self, treshold=3):
-        for index_1 in range(len(self.bad_poses)):
+    def compare_poses(self, treshold=4, frameskip=10):
+        good_pose_indexes = list(range(len(self.good_poses)))
+        for index_1 in range(0, len(self.bad_poses), frameskip):
             min_value = treshold + 1
             min_index = 0
-            for index_2 in range(len(self.good_poses)):
+            for index_2 in good_pose_indexes:
                 distance = self.compute_pose_distance(self.bad_poses[index_1], self.good_poses[index_2])
                 min_value, min_index = (distance, index_2) if distance < min_value else (min_value, min_index)
             if min_value > treshold:
                 continue
+            good_pose_indexes.remove(min_index)
             self.bad_poses[index_1].compute_corrections(self.good_poses[min_index])
             if self.good_poses_video is not None and self.bad_poses_video is not None:
+                print(str(index_1), "+", str(min_index))
                 plot_frames(self.good_poses_video[min_index], self.bad_poses_video[index_1])

@@ -100,11 +100,8 @@ class Predictor:
         pose.plot()
 
 
-# poses=npy_to_poses("./predictions/baseball_1.npy")
+#poses=npy_to_poses("./predictions/baseball_1.npy")
 
-pred = Predictor('./data/data_2d_custom_baseball_me.npz',
-                 './checkpoint/Model_3D.bin',
-                 export_path="/home/filip/Documents/Repos/Smart-Trainer/predictions/baseball_me")
-pred.export_prediction()
-
+pred = Predictor('.data/data_2d_custom_baseball_george_2.npz',
+                 './checkpoint/Model_3D.bin')
 pred.plot_pose()
