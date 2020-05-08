@@ -7,7 +7,6 @@ from common.camera import world_to_camera, normalize_screen_coordinates
 from common.generators import UnchunkedGenerator
 from common.loss import mpjpe, mean_velocity_error, p_mpjpe, n_mpjpe
 from common.model import TemporalModelOptimized1f, TemporalModel
-from common.utils import VisdomLinePlotter
 from common.utils import deterministic_random
 
 args = {'actions': '*',

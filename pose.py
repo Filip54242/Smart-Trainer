@@ -1,11 +1,48 @@
-from math import sqrt
+from math import sqrt, acos, degrees
 
+import cv2
 import matplotlib.pyplot as plt
+import numpy as np
+from PIL import ImageDraw, Image
 from mpl_toolkits.mplot3d import Axes3D
+
+
+def joints_to_lines(joint_1, joint_2):
+    line_1 = [[joint_1.x, joint_1.y], (joint_2.x, joint_2.y)]
+    line_2 = [[joint_1.x, joint_1.z], (joint_2.x, joint_2.z)]
+    line_3 = [[joint_1.y, joint_1.z], (joint_2.y, joint_2.z)]
+    return line_1, line_2, line_3
+
+
+def dot(first, second):
+    return first[0] * second[0] + first[1] * second[1]
 
 
 def make_pose(keypoints):
     return Pose(keypoints)
+
+
+def normalize_to_interval(array, x, y):
+    range = max(array) - min(array)
+    array = [(element - min(array)) / range for element in array]
+    range = y - x
+    array = [(element * range) + x for element in array]
+    return array
+
+
+def angle(first_line, second_line):
+    first_line = [(first_line[0][0] - first_line[1][0]), (first_line[0][1] - first_line[1][1])]
+    second_line = [(second_line[0][0] - second_line[1][0]), (second_line[0][1] - second_line[1][1])]
+    dot_prod = dot(first_line, second_line)
+    dot_first = dot(first_line, first_line) ** 0.5
+    dot_second = dot(second_line, second_line) ** 0.5
+    angle = acos(dot_prod / dot_second / dot_first)
+    ang_deg = degrees(angle) % 360
+
+    if ang_deg - 180 >= 0:
+        return 360 - ang_deg
+    else:
+        return ang_deg
 
 
 class Joint:
@@ -46,8 +83,13 @@ class Joint:
         axis.scatter(self.x, self.y, self.z)
         axis.text(self.x, self.y, self.z, str(self.type), 'z')
 
+    def plot_2d(self, axis):
+        axis.scatter(self.x, self.z)
+
 
 class Pose:
+    JOINT_GROUPS = [[[10, 9], [9, 8]], [[8, 7], [7, 0]], [[0, 4], [4, 5], [5, 6]], [[0, 1], [0, 2], [0, 3]],
+                    [[14, 15], [15, 16]], [[11, 12], [12, 13]]]
     SPINE_GROUP = [7, 8, 0]
     HEAD_GROUP = [9, 10]
     LIMB_GROUP = [1, 2, 3, 4, 5, 6, 11, 12, 13, 14, 15, 16]
@@ -88,6 +130,37 @@ class Pose:
 
     def __getitem__(self, item):
         return self.joints[item]
+
+    def to_array(self):
+        return [[element.x for element in self], [element.y for element in self], [element.z for element in self]]
+
+    def put_pose_on_image(self, image, bbox):
+        arr = self.to_array()
+        x = arr[0]
+        y = arr[2]
+        x = normalize_to_interval(x, bbox[2], bbox[0])
+        y = normalize_to_interval(y, bbox[3], bbox[1])
+        for key, value in self.SKELETON.items():
+            if value is not None:
+                for item in list(value):
+                    cv2.line(image, (int(x[key]), int(y[key])), (int(x[item]), int(y[item])), (0, 0, 255), 15)
+        return image
+
+    def angle_similarity(self, other):
+        similarity = 0
+        for group in self.JOINT_GROUPS:
+            for index in range(len(group) - 1):
+                average = 0
+                pose_1_line_1 = joints_to_lines(self.joints[group[index][0]], self.joints[group[index][1]])
+                pose_1_line_2 = joints_to_lines(self.joints[group[index + 1][0]], self.joints[group[index + 1][1]])
+                pose_2_line_1 = joints_to_lines(other.joints[group[index][0]], other.joints[group[index][1]])
+                pose_2_line_2 = joints_to_lines(other.joints[group[index + 1][0]], other.joints[group[index + 1][1]])
+                for index_2 in range(3):
+                    average += abs(angle(pose_1_line_1[index_2], pose_1_line_2[index_2]) - angle(pose_2_line_1[index_2],
+                                                                                                 pose_2_line_2[
+                                                                                                     index_2]))
+                similarity += average / 3
+        return similarity
 
     def limbs_group_corrections(self, diff, treshold):
         for index in self.LIMB_GROUP:
@@ -146,6 +219,18 @@ class Pose:
                 for index in value:
                     axis.plot([self.joints[key].x, self.joints[index].x], [self.joints[key].y, self.joints[index].y],
                               [self.joints[key].z, self.joints[index].z])
+
+    def prepare_2d_plot(self, axis=None):
+        if axis is None:
+            fig = plt.figure()
+            axis = fig.add_subplot()
+        for joint in self.joints:
+            joint.plot_2d(axis)
+
+        for key, value in self.SKELETON.items():
+            if value is not None:
+                for index in value:
+                    axis.plot([self.joints[key].x, self.joints[index].x], [self.joints[key].z, self.joints[index].z])
 
     def plot(self):
         plt.show()

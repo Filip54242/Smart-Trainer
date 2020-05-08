@@ -10,7 +10,9 @@ from pose import make_pose
 
 
 class Predictor:
-    def __init__(self, dataset_path, checkpoint_path, input_video_path=None, export_path=None, output_path=None):
+    def __init__(self, dataset_path, checkpoint_path, input_video_path=None, export_path=None, output_path=None,
+                 with_cude=False):
+        self.with_cuda = with_cude
         self.dataset_path = dataset_path
         self.export_path = export_path
         self.output_path = output_path
@@ -71,13 +73,13 @@ class Predictor:
                                                  joints_right=self.joints_right)
 
     def make_prediction(self):
-        if torch.cuda.is_available():
+        if self.with_cuda:
             self.model = self.model.cuda()
         with torch.no_grad():
             self.model.eval()
             for _, batch, batch_2d in self.test_generator.next_epoch():
                 inputs_2d = torch.from_numpy(batch_2d.astype('float32'))
-                if torch.cuda.is_available():
+                if self.with_cuda:
                     inputs_2d = inputs_2d.cuda()
 
             predicted_3d_pos = self.model(inputs_2d)
@@ -100,8 +102,9 @@ class Predictor:
         pose.plot()
 
 
-#poses=npy_to_poses("./predictions/baseball_1.npy")
+# poses=npy_to_poses("./predictions/baseball_1.npy")
 
-pred = Predictor('.data/data_2d_custom_baseball_george_2.npz',
-                 './checkpoint/Model_3D.bin')
-pred.plot_pose()
+pred = Predictor('./data/data_2d_custom_baseball_teo.npz',
+                 './checkpoint/Model_3D.bin',
+                 export_path='/home/filip/Documents/Repos/Smart-Trainer/predictions/baseball_teo.npy')
+pred.export_prediction()

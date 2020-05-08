@@ -15,7 +15,12 @@ class VideoManager:
             good, frame = capture.read()
         capture.release()
 
+    def __len__(self):
+        return len(self.frames)
+
     def __getitem__(self, item):
+        if item > len(self)-1:
+            return None
         return self.frames[item]
 
     def export_video(self, path, framerate=30):

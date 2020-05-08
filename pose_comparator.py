@@ -1,5 +1,7 @@
-import numpy as np
 import cv2
+import numpy as np
+from mpl_toolkits.mplot3d import Axes3D
+
 from common.utils import npy_to_poses
 from video_manager import VideoManager
 import matplotlib.pyplot as plt
@@ -17,17 +19,17 @@ def plot_frames(first_frame, second_frame):
 
 
 class Comparator:
-    DEFAULT_WEIGHTS = {"BOTTOM SPINE": 0.1,
+    DEFAULT_WEIGHTS = {"BOTTOM SPINE": 0,
                        "RIGHT HIP": 1,
                        "RIGHT KNEE": 1,
                        "RIGHT ANKLE": 1,
                        "LEFT HIP": 1,
                        "LEFT KNEE": 1,
                        "LEFT ANKLE": 1,
-                       "MIDDLE SPINE": 0.1,
-                       "TOP SPINE": 0.1,
-                       "MIDDLE HEAD": 0.1,
-                       "TOP HEAD": 0.1,
+                       "MIDDLE SPINE": 0,
+                       "TOP SPINE": 0,
+                       "MIDDLE HEAD": 0,
+                       "TOP HEAD": 0,
                        "LEFT SHOULDER": 1,
                        "LEFT ELBOW": 1,
                        "LEFT HAND": 1,
@@ -35,9 +37,12 @@ class Comparator:
                        "RIGHT ELBOW": 1,
                        "RIGHT HAND": 1}
 
-    def __init__(self, good_pose, bad_pose, good_pose_video=None, bad_pose_video=None, weights=None):
+    def __init__(self, good_pose, bad_pose, good_bboxes, bad_bboxes, good_pose_video=None, bad_pose_video=None,
+                 weights=None):
         self.good_poses = npy_to_poses(good_pose)
         self.bad_poses = npy_to_poses(bad_pose)
+        self.good_bboxes = np.load(good_bboxes).astype( dtype='int')
+        self.bad_bboxes = np.load(bad_bboxes).astype( dtype='int')
         self.weights = list(self.DEFAULT_WEIGHTS.values()) if weights is None else weights
         self.good_poses_video = None
         self.bad_poses_video = None
@@ -56,18 +61,23 @@ class Comparator:
             distance += pose_1[index].euclidian_distance(pose_2[index]) * self.weights[index]
         return distance
 
-    def compare_poses(self, treshold=4, frameskip=10):
+    def compare_poses(self, treshold=168, frameskip=5):
         good_pose_indexes = list(range(len(self.good_poses)))
+        print(good_pose_indexes)
         for index_1 in range(0, len(self.bad_poses), frameskip):
             min_value = treshold + 1
             min_index = 0
             for index_2 in good_pose_indexes:
-                distance = self.compute_pose_distance(self.bad_poses[index_1], self.good_poses[index_2])
+                distance = self.bad_poses[index_1].angle_similarity(self.good_poses[index_2])
                 min_value, min_index = (distance, index_2) if distance < min_value else (min_value, min_index)
             if min_value > treshold:
                 continue
             good_pose_indexes.remove(min_index)
             self.bad_poses[index_1].compute_corrections(self.good_poses[min_index])
             if self.good_poses_video is not None and self.bad_poses_video is not None:
-                print(str(index_1), "+", str(min_index))
-                plot_frames(self.good_poses_video[min_index], self.bad_poses_video[index_1])
+                print(str(index_1), "+", str(min_index), "=", str(min_value))
+                if self.good_poses_video[min_index] is not None and self.bad_poses_video[index_1] is not None:
+                    plot_frames(self.good_poses[min_index].put_pose_on_image(self.good_poses_video[min_index],
+                                                                             self.good_bboxes[min_index]),
+                                self.bad_poses[index_1].put_pose_on_image(self.bad_poses_video[index_1],
+                                                                          self.bad_bboxes[index_1]))
