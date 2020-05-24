@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 
-from common.utils import npy_path_to_poses, ndarray_to_poses
+from common.utils import npy_to_poses
 from video_manager import VideoManager
 import matplotlib.pyplot as plt
 
@@ -16,36 +16,6 @@ def plot_frames(first_frame, second_frame):
     f.add_subplot(1, 2, 2)
     plt.imshow(second_frame)
     plt.show(block=True)
-
-
-def normalize_to_interval(array, x, y):
-    range = max(array) - min(array)
-    array = [(element - min(array)) / range for element in array]
-    range = y - x
-    array = [(element * range) + x for element in array]
-    return array
-
-
-def put_pose_on_image(image, metadata):
-    arr = metadata[1].to_array()
-    x = arr[0]
-    y = arr[1]
-    x = normalize_to_interval(x, metadata[0][0], metadata[0][2])
-    y = normalize_to_interval(y, metadata[0][1], metadata[0][3])
-    for key, value in metadata[1].SKELETON_2D.items():
-        if value is not None:
-            for item in list(value):
-                cv2.line(image, (int(x[key]), int(y[key])), (int(x[item]), int(y[item])), (0, 0, 255), 15)
-                #cv2.circle(image, (int(x[key]), int(y[key])), 1, (0, 0, 255), 15)
-                #cv2.circle(image, (int(x[item]), int(y[item])), 1, (0, 0, 255), 15)
-    return image
-
-def load_metadata(path):
-    metadata = np.load(path, allow_pickle=True)
-    bboxes = metadata[0]['bounding_boxes']
-    kp = metadata[0]['keypoints']
-    metadata = [(bboxes[index].tolist(), ndarray_to_poses(kp[index])) for index in range(len(bboxes))]
-    return metadata
 
 
 class Comparator:
@@ -67,12 +37,12 @@ class Comparator:
                        "RIGHT ELBOW": 1,
                        "RIGHT HAND": 1}
 
-    def __init__(self, good_pose, bad_pose, good_metadata, bad_metadata, good_pose_video=None, bad_pose_video=None,
+    def __init__(self, good_pose, bad_pose, good_bboxes, bad_bboxes, good_pose_video=None, bad_pose_video=None,
                  weights=None):
-        self.good_poses = npy_path_to_poses(good_pose)
-        self.bad_poses = npy_path_to_poses(bad_pose)
-        self.good_metadata = load_metadata(good_metadata)
-        self.bad_metadata = load_metadata(bad_metadata)
+        self.good_poses = npy_to_poses(good_pose)
+        self.bad_poses = npy_to_poses(bad_pose)
+        self.good_bboxes = (np.load(good_bboxes,allow_pickle=True))[0]['bounding_boxes']
+        self.bad_bboxes = np.load(bad_bboxes,allow_pickle=True)[0]['bounding_boxes']
         self.weights = list(self.DEFAULT_WEIGHTS.values()) if weights is None else weights
         self.good_poses_video = None
         self.bad_poses_video = None
@@ -107,7 +77,7 @@ class Comparator:
             if self.good_poses_video is not None and self.bad_poses_video is not None:
                 print(str(index_1), "+", str(min_index), "=", str(min_value))
                 if self.good_poses_video[min_index] is not None and self.bad_poses_video[index_1] is not None:
-                    plot_frames(put_pose_on_image(self.good_poses_video[min_index],
-                                                  self.good_metadata[min_index]),
-                                put_pose_on_image(self.bad_poses_video[index_1],
-                                                  self.bad_metadata[index_1]))
+                    plot_frames(self.good_poses[min_index].put_pose_on_image(self.good_poses_video[min_index],
+                                                                             self.good_bboxes[min_index]),
+                                self.bad_poses[index_1].put_pose_on_image(self.bad_poses_video[index_1],
+                                                                          self.bad_bboxes[index_1]))
