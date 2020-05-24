@@ -54,9 +54,15 @@ def deterministic_random(min_value, max_value, data):
     return int(raw_value / (2 ** 32 - 1) * (max_value - min_value)) + min_value
 
 
-def npy_to_poses(path):
+def npy_path_to_poses(path):
     pose_list = []
     poses = np.load(path)
     for pose in poses.tolist():
         pose_list.append(Pose(pose))
     return pose_list
+
+
+def ndarray_to_poses(array):
+    return Pose(array.tolist())
+
+

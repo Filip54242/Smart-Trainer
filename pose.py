@@ -94,23 +94,39 @@ class Pose:
     HEAD_GROUP = [9, 10]
     LIMB_GROUP = [1, 2, 3, 4, 5, 6, 11, 12, 13, 14, 15, 16]
     CORRECTIONS = [["UP", "DOWN"], ["FORWARD", "BACKWARD"], ["RIGHT", "LEFT"]]
-    SKELETON = {0: [1, 4, 7],
-                1: [2],
-                2: [3],
-                3: None,
-                4: [5],
-                5: [6],
-                6: None,
-                7: [8, 11, 14],
-                8: [9],
-                9: [10],
-                10: None,
-                11: [12],
-                12: [13],
-                13: None,
-                14: [15],
-                15: [16],
-                16: None}
+    SKELETON_3D = {0: [1, 4, 7],
+                   1: [2],
+                   2: [3],
+                   3: None,
+                   4: [5],
+                   5: [6],
+                   6: None,
+                   7: [8, 11, 14],
+                   8: [9],
+                   9: [10],
+                   10: None,
+                   11: [12],
+                   12: [13],
+                   13: None,
+                   14: [15],
+                   15: [16],
+                   16: None}
+    SKELETON_2D = {0: [1, 2, 5, 6],
+                   1: [3],
+                   2: [4],
+                   3: None,
+                   4: None,
+                   5: [6, 11, 7],
+                   6: [12, 8],
+                   7: [9], 8: [10],
+                   9: None,
+                   10: None,
+                   11: [12, 13],
+                   12: [14],
+                   13: [15],
+                   14: [16],
+                   15: None,
+                   16: None}
 
     def __init__(self, joints):
         self.joints = []
@@ -133,18 +149,6 @@ class Pose:
 
     def to_array(self):
         return [[element.x for element in self], [element.y for element in self], [element.z for element in self]]
-
-    def put_pose_on_image(self, image, bbox):
-        arr = self.to_array()
-        x = arr[0]
-        y = arr[2]
-        x = normalize_to_interval(x, bbox[2], bbox[0])
-        y = normalize_to_interval(y, bbox[3], bbox[1])
-        for key, value in self.SKELETON.items():
-            if value is not None:
-                for item in list(value):
-                    cv2.line(image, (int(x[key]), int(y[key])), (int(x[item]), int(y[item])), (0, 0, 255), 15)
-        return image
 
     def angle_similarity(self, other):
         similarity = 0
@@ -214,7 +218,7 @@ class Pose:
         for joint in self.joints:
             joint.plot(axis)
 
-        for key, value in self.SKELETON.items():
+        for key, value in self.SKELETON_3D.items():
             if value is not None:
                 for index in value:
                     axis.plot([self.joints[key].x, self.joints[index].x], [self.joints[key].y, self.joints[index].y],
@@ -227,7 +231,7 @@ class Pose:
         for joint in self.joints:
             joint.plot_2d(axis)
 
-        for key, value in self.SKELETON.items():
+        for key, value in self.SKELETON_3D.items():
             if value is not None:
                 for index in value:
                     axis.plot([self.joints[key].x, self.joints[index].x], [self.joints[key].z, self.joints[index].z])

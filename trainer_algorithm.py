@@ -5,7 +5,7 @@ from common.camera import normalize_screen_coordinates, camera_to_world
 from common.custom_dataset import CustomDataset
 from common.generators import UnchunkedGenerator
 from common.model import TemporalModel
-from common.utils import npy_to_poses
+from common.utils import npy_path_to_poses
 from pose import make_pose
 
 

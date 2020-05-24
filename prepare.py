@@ -147,8 +147,12 @@ def predict_pose(pose_predictor, img_generator, output_path, dataset_name='detec
     output = {}
     output[dataset_name] = {}
     output[dataset_name]['custom'] = [data[0]['keypoints'].astype('float32')]
-    np.savez_compressed(output_path, positions_2d=output, metadata=metadata)
-    np.save(output_path + '_metadata', np.asarray(data[0]['bounding_boxes']))
+    #np.savez_compressed(output_path, positions_2d=output, metadata=metadata)
+
+    np.save(output_path + '_metadata', [{
+        'bounding_boxes': boxes,
+        'keypoints': keypoints,
+    }])
 
     print('All done!')
 
@@ -170,17 +174,14 @@ if __name__ == '__main__':
     output_path = '/home/filip/Documents/Repos/Smart-Trainer/predictions/baseball_2'
     predict(model_config_path, model_weights_path, video_path, output_path)
 
+    video_path = '/home/filip/Documents/Repos/Smart-Trainer/inputs/baseball_1.mp4'
+    output_path = '/home/filip/Documents/Repos/Smart-Trainer/predictions/baseball_1'
+    predict(model_config_path, model_weights_path, video_path, output_path)
+
     video_path = '/home/filip/Documents/Repos/Smart-Trainer/inputs/baseball_3.mp4'
     output_path = '/home/filip/Documents/Repos/Smart-Trainer/predictions/baseball_3'
     predict(model_config_path, model_weights_path, video_path, output_path)
 
-    video_path = '/home/filip/Documents/Repos/Smart-Trainer/inputs/baseball_george_1.mp4'
-    output_path = '/home/filip/Documents/Repos/Smart-Trainer/predictions/baseball_george_1'
-    predict(model_config_path, model_weights_path, video_path, output_path)
-
-    video_path = '/home/filip/Documents/Repos/Smart-Trainer/inputs/baseball_george_2.mp4'
-    output_path = '/home/filip/Documents/Repos/Smart-Trainer/predictions/baseball_george_2'
-    predict(model_config_path, model_weights_path, video_path, output_path)
 
     video_path = '/home/filip/Documents/Repos/Smart-Trainer/inputs/me.mp4'
     output_path = '/home/filip/Documents/Repos/Smart-Trainer/predictions/baseball_me'
