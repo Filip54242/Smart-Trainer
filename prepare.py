@@ -149,10 +149,7 @@ def predict_pose(pose_predictor, img_generator, output_path, dataset_name='detec
     output[dataset_name]['custom'] = [data[0]['keypoints'].astype('float32')]
     #np.savez_compressed(output_path, positions_2d=output, metadata=metadata)
 
-    np.save(output_path + '_metadata', [{
-        'bounding_boxes': boxes,
-        'keypoints': keypoints,
-    }])
+    np.save(output_path + '_metadata', [boxes])
 
     print('All done!')
 

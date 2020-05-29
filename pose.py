@@ -238,3 +238,15 @@ class Pose:
 
     def plot(self):
         plt.show()
+
+    def put_on_image(self, image, bbox):
+        arr = self.to_array()
+        x = arr[0]
+        y = arr[2]
+        x = normalize_to_interval(x, bbox[2], bbox[0])
+        y = normalize_to_interval(y, bbox[3], bbox[1])
+        for key, value in self.SKELETON_3D.items():
+            if value is not None:
+                for item in list(value):
+                    cv2.line(image, (int(x[key]), int(y[key])), (int(x[item]), int(y[item])), (0, 0, 255), 15)
+        return image
