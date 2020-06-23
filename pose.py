@@ -88,7 +88,7 @@ class Joint:
 
 
 class Pose:
-    JOINT_GROUPS = [[[10, 9], [9, 8]], [[8, 7], [7, 0]], [[0, 4], [4, 5], [5, 6]], [[0, 1], [0, 2], [0, 3]],
+    JOINT_GROUPS = [[[10, 9], [9, 8]], [[8, 7], [7, 0]], [[0, 4], [4, 5], [5, 6]], [[0, 1], [1, 2], [2, 3]],
                     [[14, 15], [15, 16]], [[11, 12], [12, 13]]]
     SPINE_GROUP = [7, 8, 0]
     HEAD_GROUP = [9, 10]
@@ -235,11 +235,13 @@ class Pose:
             if value is not None:
                 for index in value:
                     axis.plot([self.joints[key].x, self.joints[index].x], [self.joints[key].z, self.joints[index].z])
+        for index in range(len(self.joints)):
+            axis.annotate(str(index), (self.joints[index].x, self.joints[index].z))
 
     def plot(self):
         plt.show()
 
-    def put_on_image(self, image, bbox):
+    def put_on_image(self, image, bbox, color=(0, 0, 255)):
         arr = self.to_array()
         x = arr[0]
         y = arr[2]
@@ -248,5 +250,5 @@ class Pose:
         for key, value in self.SKELETON_3D.items():
             if value is not None:
                 for item in list(value):
-                    cv2.line(image, (int(x[key]), int(y[key])), (int(x[item]), int(y[item])), (0, 0, 255), 15)
+                    cv2.line(image, (int(x[key]), int(y[key])), (int(x[item]), int(y[item])), color, 15)
         return image

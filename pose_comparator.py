@@ -62,6 +62,35 @@ class Comparator:
             self.bad_poses_video = VideoManager()
             self.bad_poses_video.get_video(bad_pose_video)
 
+    def compare_images(self, good_pose, bad_pose, good_bbox, bad_bbox, bad_image, ignore=(0, 7, 8, 9, 10)):
+        joint_groups = good_pose.JOINT_GROUPS
+        images = []
+        good_arr = good_pose.to_array()
+        good_x = good_arr[0]
+        good_y = good_arr[2]
+        good_x = normalize_to_interval(good_x, good_bbox[2], good_bbox[0])
+        good_y = normalize_to_interval(good_y, good_bbox[3], good_bbox[1])
+
+        bad_arr = bad_pose.to_array()
+        bad_x = bad_arr[0]
+        bad_y = bad_arr[2]
+        bad_x = normalize_to_interval(bad_x, bad_bbox[2], bad_bbox[0])
+        bad_y = normalize_to_interval(bad_y, bad_bbox[3], bad_bbox[1])
+
+        for group in joint_groups:
+            for limb in group:
+                if limb[0] in ignore or limb[1] in ignore:
+                    continue
+                image = bad_image.copy()
+
+                cv2.line(image, (int(bad_x[limb[0]]), int(bad_y[limb[0]])),
+                         (int(good_x[limb[1]] - good_x[limb[0]] + bad_x[limb[0]]),
+                          int(good_y[limb[1]] - good_y[limb[0]] + bad_y[limb[0]])),
+                         (0, 255, 0),
+                         15)
+                images.append(image)
+        return images
+
     def compute_pose_distance(self, pose_1, pose_2):
         if len(pose_1) != len(pose_2):
             return float("inf")
@@ -71,7 +100,9 @@ class Comparator:
         return distance
 
     def compare_poses(self, treshold=168, frameskip=1):
-        sets=[]
+        # self.good_poses[0].prepare_2d_plot()
+        # self.good_poses[0].plot()
+        sets = []
         good_pose_indexes = list(range(len(self.good_poses)))
         # print(good_pose_indexes)
         for index_1 in range(0, len(self.bad_poses), frameskip):
@@ -83,7 +114,7 @@ class Comparator:
             if min_value > treshold:
                 continue
             good_pose_indexes.remove(min_index)
-            self.bad_poses[index_1].compute_corrections(self.good_poses[min_index])
+            # self.bad_poses[index_1].compute_corrections(self.good_poses[min_index])
             if self.good_poses_video is not None and self.bad_poses_video is not None:
                 # print(str(index_1), "+", str(min_index), "=", str(min_value))
                 if self.good_poses_video[min_index] is not None and self.bad_poses_video[index_1] is not None:
@@ -91,7 +122,11 @@ class Comparator:
                                                                       self.good_bboxes[min_index])
                     frame_2 = self.bad_poses[index_1].put_on_image(self.bad_poses_video[index_1],
                                                                    self.bad_bboxes[index_1])
-                    #plot_frames(frame_1, frame_2)
-                    sets.append([[frame_1, frame_2]])
+                    # plot_frames(frame_1, frame_2)
+                    bad_frames = self.compare_images(self.good_poses[min_index], self.bad_poses[index_1],
+                                                     self.good_bboxes[min_index], self.bad_bboxes[index_1],
+                                                     self.bad_poses_video[index_1])
+                    set = [(frame_1, bad_frames[index]) for index in range(len(bad_frames))]
+                    set.insert(0, (frame_1, frame_2))
+                    sets.append(set)
         return sets
-

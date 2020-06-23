@@ -1,17 +1,17 @@
+import os
 import tkinter
-from tkinter import Canvas, Button, mainloop, Tk, filedialog
-
 import cv2
+import matplotlib.pyplot as plt
 from PIL import ImageTk, Image
+from tkinter import Canvas, Button, mainloop, Tk, filedialog, messagebox
 
-
-from .pose_comparator import Comparator
-from trainer_algorithm import Predictor
+from pose_comparator import Comparator
 from prepare import predict
+from trainer_algorithm import Predictor
 
 
 class BaseGUI:
-    def __init__(self, root=None, image_resolution=(800, 60<0)):
+    def __init__(self, root=None, image_resolution=(800, 600)):
         self.comparator = None
         self.sets = None
         self.index_of_set = None
@@ -19,9 +19,9 @@ class BaseGUI:
         self.root = root if root is not None else Tk()
         self.root.title("Baseball-Trainer")
         self.image_width, self.image_height = image_resolution
-        self.model_2D_config = '../config/Model_2D.yaml'
-        self.model_2D_weights = '../checkpoint/Model_2D.pkl'
-        self.model_3D_weights = '../checkpoint/Model_3D.bin'
+        self.model_2D_config = './config/Model_2D.yaml'
+        self.model_2D_weights = './checkpoint/Model_2D.pkl'
+        self.model_3D_weights = './checkpoint/Model_3D.bin'
         self.left_image = None
         self.right_image = None
         self.left_canvas = Canvas(self.root, width=self.image_width, height=self.image_height)
@@ -37,9 +37,13 @@ class BaseGUI:
         self.previous_image_button = Button(self.root, text='<', command=self.previous_image)
         self.previous_image_button.grid(row=1, column=1)
         self.quit_button = Button(self.root, text='CLOSE', command=self.quit)
-        self.quit_button.grid(row=2, column=1, columnspan=2)
-        self.good_pose_video = self.get_good_video_filename()
-        self.bad_pose_video = self.get_bad_video_filename()
+        self.quit_button.grid(row=3, column=1, columnspan=2)
+        self.choose_again_button = Button(self.root, text='CHOOSE AGAIN', command=self.init_comparator)
+        self.choose_again_button.grid(row=2, column=1, columnspan=2)
+        self.bad_pose_video = None
+        self.good_pose_video = None
+        self.loading_photo = './aux/loading.jpg'
+        self.get_loading_image()
         self.init_comparator()
         mainloop()
 
@@ -47,6 +51,12 @@ class BaseGUI:
         file_name = filedialog.askopenfilename(filetypes=filetypes,
                                                title=title)
         return file_name
+
+    def get_loading_image(self):
+        self.loading_photo = plt.imread(self.loading_photo)
+        self.loading_photo = cv2.cvtColor(self.loading_photo, cv2.COLOR_BGR2RGB)
+        self.loading_photo = cv2.resize(self.loading_photo, (self.image_width, self.image_height))
+        self.loading_photo = ImageTk.PhotoImage(image=Image.fromarray(self.loading_photo))
 
     def get_bad_video_filename(self):
         return self.file_dialog(filetypes=[('.mp4files', '.mp4')], title='Select a video of you')
@@ -92,52 +102,83 @@ class BaseGUI:
             return path.split('/')[-1]
         return (path.split('/')[-1]).split('.')[0]
 
-    def init_comparator(self):
-        name_of_file_good_pose = self.get_filename_from_path(self.good_pose_video)
-        name_of_file_bad_pose = self.get_filename_from_path(self.bad_pose_video)
-        good_pose_prediction = "../predictions/" + name_of_file_good_pose+".npz"
-        bad_pose_prediction = "../predictions/" + name_of_file_bad_pose +".npz"
-        good_pose_metadata = "../predictions/" + name_of_file_good_pose + '_metadata'
-        bad_pose_metadata = "../predictions/" + name_of_file_bad_pose + '_metadata'
-        #predict(self.model_2D_config, self.model_2D_weights, self.bad_pose_video, bad_pose_prediction)
-        #predict(self.model_2D_config, self.model_2D_weights, self.good_pose_video, good_pose_prediction)
-        bad_pose_data = "./data/data_2d_custom_" + name_of_file_bad_pose
-        good_pose_data = "./data/data_2d_custom_" + name_of_file_good_pose
-        #Predictor(bad_pose_prediction, self.model_3D_weights, export_path=bad_pose_prediction).export_prediction()
-        #Predictor(good_pose_prediction, self.model_3D_weights, export_path=good_pose_prediction).export_prediction()
+    def loading(self):
+        self.left_canvas.create_image(0, 0, anchor=tkinter.NW, image=self.loading_photo)
+        self.right_canvas.create_image(0, 0, anchor=tkinter.NW, image=self.loading_photo)
 
-        comp = Comparator(good_pose='../predictions/baseball_1.npy',
-                          bad_pose='../predictions/baseball_me_2.npy',
-                          good_pose_video='../inputs/baseball_1.mp4',
-                          bad_pose_video='../inputs/me_2.mp4',
-                          good_bboxes='../predictions/baseball_1_metadata.npy',
-                          bad_bboxes='../predictions/baseball_me_2_metadata.npy')
-        #comp = Comparator(good_pose_prediction, bad_pose_prediction, good_pose_metadata, bad_pose_metadata,self.good_pose_video, self.bad_pose_video)
-        self.sets = comp.compare_poses()
-        self.index_in_set = 0
-        self.index_of_set = 0
-        self.update_images()
+    def get_video_paths(self):
+        self.good_pose_video = self.get_good_video_filename()
+        if type(self.good_pose_video) is not str or not os.path.isfile(self.good_pose_video):
+            messagebox.showerror("Error", "You can't continue if you don't select a video of a professional player")
+            return False
+
+        self.bad_pose_video = self.get_bad_video_filename()
+        if type(self.bad_pose_video) is not str or not os.path.isfile(self.bad_pose_video):
+            messagebox.showerror("Error", "You can't continue if you don't select a video of you")
+            return False
+        return True
+
+    def init_comparator(self):
+        self.loading()
+        if self.get_video_paths():
+            name_of_file_good_pose = self.get_filename_from_path(self.good_pose_video)
+            name_of_file_bad_pose = self.get_filename_from_path(self.bad_pose_video)
+
+            good_pose_prediction = "./predictions/" + name_of_file_good_pose
+            bad_pose_prediction = "./predictions/" + name_of_file_bad_pose
+
+            good_pose_metadata = "./predictions/" + name_of_file_good_pose + '_metadata.npy'
+            bad_pose_metadata = "./predictions/" + name_of_file_bad_pose + '_metadata.npy'
+
+            if not os.path.isfile(bad_pose_prediction + '.npz'):
+                predict(self.model_2D_config, self.model_2D_weights, self.bad_pose_video, bad_pose_prediction)
+            if not os.path.isfile(good_pose_prediction + '.npz'):
+                predict(self.model_2D_config, self.model_2D_weights, self.good_pose_video, good_pose_prediction)
+
+            good_pose_prediction += '.npz'
+            bad_pose_prediction += '.npz'
+
+            good_final_data = './predictions/' + name_of_file_good_pose + '.npy'
+            bad_final_data = './predictions/' + name_of_file_bad_pose + '.npy'
+
+            Predictor(bad_pose_prediction, self.model_3D_weights, export_path=bad_final_data).export_prediction()
+            Predictor(good_pose_prediction, self.model_3D_weights, export_path=good_final_data).export_prediction()
+
+            comp = Comparator(good_pose=good_final_data,
+                              bad_pose=bad_final_data,
+                              good_bboxes=good_pose_metadata,
+                              bad_bboxes=bad_pose_metadata,
+                              good_pose_video=self.good_pose_video,
+                              bad_pose_video=self.bad_pose_video)
+            self.sets = comp.compare_poses()
+            if len(self.sets) == 0:
+                messagebox.showerror("Error", "There is nothing to show")
+            else:
+                self.index_in_set = 0
+                self.index_of_set = 0
+                self.update_images()
 
     def next_set(self):
-        self.index_of_set += 1
-        self.index_in_set = 0
-        self.update_images()
+        if self.sets is not None and len(self.sets) != 0:
+            self.index_of_set += 1
+            self.index_in_set = 0
+            self.update_images()
 
     def next_image(self):
-        self.index_in_set += 1
-        self.update_images()
+        if self.sets is not None and len(self.sets) != 0:
+            self.index_in_set += 1
+            self.update_images()
 
     def previous_set(self):
-        self.index_of_set -= 1
-        self.index_in_set = 0
-        self.update_images()
+        if self.sets is not None and len(self.sets) != 0:
+            self.index_of_set -= 1
+            self.index_in_set = 0
+            self.update_images()
 
     def previous_image(self):
-        self.index_in_set -= 1
-        self.update_images()
+        if self.sets is not None and len(self.sets) != 0:
+            self.index_in_set -= 1
+            self.update_images()
 
     def quit(self):
         exit()
-
-
-BaseGUI()

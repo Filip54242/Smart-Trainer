@@ -147,7 +147,7 @@ def predict_pose(pose_predictor, img_generator, output_path, dataset_name='detec
     output = {}
     output[dataset_name] = {}
     output[dataset_name]['custom'] = [data[0]['keypoints'].astype('float32')]
-    #np.savez_compressed(output_path, positions_2d=output, metadata=metadata)
+    np.savez_compressed(output_path, positions_2d=output, metadata=metadata)
 
     np.save(output_path + '_metadata', [boxes])
 
@@ -167,27 +167,7 @@ if __name__ == '__main__':
 
     model_config_path = '/home/filip/Documents/Repos/Smart-Trainer/config/Model_2D.yaml'
     model_weights_path = '/home/filip/Documents/Repos/Smart-Trainer/checkpoint/Model_2D.pkl'
-    video_path = '/home/filip/Documents/Repos/Smart-Trainer/inputs/baseball_2.mp4'
-    output_path = '/home/filip/Documents/Repos/Smart-Trainer/predictions/baseball_2'
-    predict(model_config_path, model_weights_path, video_path, output_path)
-
-    video_path = '/home/filip/Documents/Repos/Smart-Trainer/inputs/baseball_1.mp4'
-    output_path = '/home/filip/Documents/Repos/Smart-Trainer/predictions/baseball_1'
-    predict(model_config_path, model_weights_path, video_path, output_path)
-
-    video_path = '/home/filip/Documents/Repos/Smart-Trainer/inputs/baseball_3.mp4'
-    output_path = '/home/filip/Documents/Repos/Smart-Trainer/predictions/baseball_3'
-    predict(model_config_path, model_weights_path, video_path, output_path)
-
-
-    video_path = '/home/filip/Documents/Repos/Smart-Trainer/inputs/me.mp4'
-    output_path = '/home/filip/Documents/Repos/Smart-Trainer/predictions/baseball_me'
-    predict(model_config_path, model_weights_path, video_path, output_path)
-
-    video_path = '/home/filip/Documents/Repos/Smart-Trainer/inputs/me_2.mp4'
-    output_path = '/home/filip/Documents/Repos/Smart-Trainer/predictions/baseball_me_2'
-    predict(model_config_path, model_weights_path, video_path, output_path)
 
     video_path = '/home/filip/Documents/Repos/Smart-Trainer/inputs/teo.mp4'
-    output_path = '/home/filip/Documents/Repos/Smart-Trainer/predictions/baseball_teo.npy'
+    output_path = '/home/filip/Documents/Repos/Smart-Trainer/predictions/baseball_teo'
     predict(model_config_path, model_weights_path, video_path, output_path)

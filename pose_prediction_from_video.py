@@ -9,7 +9,7 @@ from pose import *
 custom_dataset = './data/data_2d_custom_baseball_3.npz'
 output_path = None
 chk_filename = './checkpoint/Model_3D.bin'
-input_video_path = './inputs/baseball_1.mp4'
+input_video_path = 'inputs/baseball_1.mp4'
 export_path = None
 
 dataset = CustomDataset(custom_dataset)

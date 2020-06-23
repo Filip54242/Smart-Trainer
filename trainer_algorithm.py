@@ -5,7 +5,6 @@ from common.camera import normalize_screen_coordinates, camera_to_world
 from common.custom_dataset import CustomDataset
 from common.generators import UnchunkedGenerator
 from common.model import TemporalModel
-from common.utils import npy_path_to_poses
 from pose import make_pose
 
 
@@ -103,8 +102,7 @@ class Predictor:
 
 
 # poses=npy_to_poses("./predictions/baseball_1.npy")
-
-pred = Predictor('./data/data_2d_custom_baseball_teo.npz',
-                 './checkpoint/Model_3D.bin',
-                 export_path='/home/filip/Documents/Repos/Smart-Trainer/predictions/baseball_teo.npy')
-pred.export_prediction()
+#pred = Predictor('./predictions/me.npz',
+                 #'./checkpoint/Model_3D.bin',
+                 #export_path='./predictions/me.npy')
+#pred.export_prediction()
