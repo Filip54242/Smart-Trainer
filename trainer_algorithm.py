@@ -101,8 +101,4 @@ class Predictor:
         pose.plot()
 
 
-# poses=npy_to_poses("./predictions/baseball_1.npy")
-#pred = Predictor('./predictions/me.npz',
-                 #'./checkpoint/Model_3D.bin',
-                 #export_path='./predictions/me.npy')
-#pred.export_prediction()
+

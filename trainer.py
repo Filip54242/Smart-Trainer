@@ -1,3 +1,5 @@
 from gui import BaseGUI
 
-BaseGUI()
+# cuda = torch.cuda.is_available()
+cuda = False
+BaseGUI(enable_cuda=cuda)

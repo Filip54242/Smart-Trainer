@@ -1,9 +1,10 @@
 import os
 import tkinter
+from tkinter import Canvas, Button, mainloop, Tk, filedialog, messagebox
+
 import cv2
 import matplotlib.pyplot as plt
 from PIL import ImageTk, Image
-from tkinter import Canvas, Button, mainloop, Tk, filedialog, messagebox
 
 from pose_comparator import Comparator
 from prepare import predict
@@ -11,7 +12,8 @@ from trainer_algorithm import Predictor
 
 
 class BaseGUI:
-    def __init__(self, root=None, image_resolution=(800, 600)):
+    def __init__(self, root=None, image_resolution=(800, 600), enable_cuda=False):
+        self.with_cuda = enable_cuda
         self.comparator = None
         self.sets = None
         self.index_of_set = None
@@ -131,9 +133,11 @@ class BaseGUI:
             bad_pose_metadata = "./predictions/" + name_of_file_bad_pose + '_metadata.npy'
 
             if not os.path.isfile(bad_pose_prediction + '.npz'):
-                predict(self.model_2D_config, self.model_2D_weights, self.bad_pose_video, bad_pose_prediction)
+                predict(self.model_2D_config, self.model_2D_weights, self.bad_pose_video, bad_pose_prediction,
+                        with_cuda=self.with_cuda)
             if not os.path.isfile(good_pose_prediction + '.npz'):
-                predict(self.model_2D_config, self.model_2D_weights, self.good_pose_video, good_pose_prediction)
+                predict(self.model_2D_config, self.model_2D_weights, self.good_pose_video, good_pose_prediction,
+                        with_cuda=self.with_cuda)
 
             good_pose_prediction += '.npz'
             bad_pose_prediction += '.npz'
@@ -141,8 +145,10 @@ class BaseGUI:
             good_final_data = './predictions/' + name_of_file_good_pose + '.npy'
             bad_final_data = './predictions/' + name_of_file_bad_pose + '.npy'
 
-            Predictor(bad_pose_prediction, self.model_3D_weights, export_path=bad_final_data).export_prediction()
-            Predictor(good_pose_prediction, self.model_3D_weights, export_path=good_final_data).export_prediction()
+            Predictor(bad_pose_prediction, self.model_3D_weights, export_path=bad_final_data,
+                      with_cude=self.with_cuda).export_prediction()
+            Predictor(good_pose_prediction, self.model_3D_weights, export_path=good_final_data,
+                      with_cude=self.with_cuda).export_prediction()
 
             comp = Comparator(good_pose=good_final_data,
                               bad_pose=bad_final_data,

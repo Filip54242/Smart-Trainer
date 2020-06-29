@@ -154,8 +154,8 @@ def predict_pose(pose_predictor, img_generator, output_path, dataset_name='detec
     print('All done!')
 
 
-def predict(model_config_path, model_weights_path, video_path, output_path):
-    pose_predictor = init_pose_predictor(model_config_path, model_weights_path, cuda=False)
+def predict(model_config_path, model_weights_path, video_path, output_path, with_cuda=False):
+    pose_predictor = init_pose_predictor(model_config_path, model_weights_path, cuda=with_cuda)
     # Predict poses and save the result:
     # img_generator = read_images('./images')    # read images from a directory
     img_generator = read_video(video_path)  # or get them from a video
